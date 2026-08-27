@@ -9,8 +9,9 @@ import { SelectionScreen } from './components/SelectionScreen';
 import { ExerciseWorkspace } from './components/ExerciseWorkspace';
 import { ReportScreen } from './components/ReportScreen';
 import { CameraPermissionModal } from './components/CameraPermissionModal';
+import { SettingsPanel } from './components/SettingsPanel';
 import { voiceService } from './services/voice';
-import { ShieldAlert, Accessibility, Heart, RotateCcw, Volume2, VolumeX, Eye } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   // Navigation State
@@ -38,6 +39,9 @@ export default function App() {
   const [showPermissionModal, setShowPermissionModal] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [isRequestingCamera, setIsRequestingCamera] = useState<boolean>(false);
+
+  // Settings Panel State
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Sync Voice Service configurations
   useEffect(() => {
@@ -111,63 +115,81 @@ export default function App() {
         contrastMode ? 'bg-black border-zinc-900' : 'bg-[#0F172A] border-slate-800'
       }`}>
         
-        {/* Active render view switcher */}
-        {screen === 'selection' && (
-          <SelectionScreen
-            onSelectExercise={handleSelectExercise}
-            isVoiceEnabled={isVoiceEnabled}
-            onToggleVoice={() => setIsVoiceEnabled(!isVoiceEnabled)}
-            contrastMode={contrastMode}
-            onToggleContrast={() => setContrastMode(!contrastMode)}
-            voiceGender={voiceGender}
-            onVoiceGenderChange={(gender) => setVoiceGender(gender)}
-            enableBenefitsExplanation={enableBenefitsExplanation}
-            onToggleExplanation={() => setEnableBenefitsExplanation(!enableBenefitsExplanation)}
-            exercisePace={exercisePace}
-            onExercisePaceChange={(pace) => setExercisePace(pace)}
-            strokeAffectedSide={strokeAffectedSide}
-            onStrokeAffectedSideChange={setStrokeAffectedSide}
-            focusedRehab={focusedRehab}
-            onFocusedRehabChange={setFocusedRehab}
-          />
-        )}
+        {/* Active render view switcher with animated transitions */}
+        <AnimatePresence mode="wait">
+          {screen === 'selection' && (
+            <motion.div
+              key="selection"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="flex-1 flex flex-col"
+            >
+              <SelectionScreen
+                onSelectExercise={handleSelectExercise}
+                onOpenSettings={() => setShowSettings(true)}
+                contrastMode={contrastMode}
+                isVoiceEnabled={isVoiceEnabled}
+              />
+            </motion.div>
+          )}
 
-        {screen === 'exercise' && selectedExercise && (
-          <ExerciseWorkspace
-            exerciseId={selectedExercise}
-            onBack={() => setScreen('selection')}
-            onCompleteSession={handleCompleteSession}
-            isVoiceEnabled={isVoiceEnabled}
-            contrastMode={contrastMode}
-            voiceVolume={voiceVolume}
-            onVoiceVolumeChange={(volume) => {
-              setVoiceVolume(volume);
-              if (volume > 0) {
-                setIsVoiceEnabled(true);
-              }
-            }}
-            voiceGender={voiceGender}
-            onVoiceGenderChange={(gender) => setVoiceGender(gender)}
-            enableBenefitsExplanation={enableBenefitsExplanation}
-            onToggleExplanation={() => setEnableBenefitsExplanation(!enableBenefitsExplanation)}
-            exercisePace={exercisePace}
-            onExercisePaceChange={(pace) => setExercisePace(pace)}
-            strokeAffectedSide={strokeAffectedSide}
-            onStrokeAffectedSideChange={setStrokeAffectedSide}
-            focusedRehab={focusedRehab}
-            onFocusedRehabChange={setFocusedRehab}
-          />
-        )}
+          {screen === 'exercise' && selectedExercise && (
+            <motion.div
+              key="exercise"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="flex-1 flex flex-col"
+            >
+              <ExerciseWorkspace
+                exerciseId={selectedExercise}
+                onBack={() => setScreen('selection')}
+                onCompleteSession={handleCompleteSession}
+                isVoiceEnabled={isVoiceEnabled}
+                contrastMode={contrastMode}
+                voiceVolume={voiceVolume}
+                onVoiceVolumeChange={(volume) => {
+                  setVoiceVolume(volume);
+                  if (volume > 0) {
+                    setIsVoiceEnabled(true);
+                  }
+                }}
+                voiceGender={voiceGender}
+                onVoiceGenderChange={(gender) => setVoiceGender(gender)}
+                enableBenefitsExplanation={enableBenefitsExplanation}
+                onToggleExplanation={() => setEnableBenefitsExplanation(!enableBenefitsExplanation)}
+                exercisePace={exercisePace}
+                onExercisePaceChange={(pace) => setExercisePace(pace)}
+                strokeAffectedSide={strokeAffectedSide}
+                onStrokeAffectedSideChange={setStrokeAffectedSide}
+                focusedRehab={focusedRehab}
+                onFocusedRehabChange={setFocusedRehab}
+              />
+            </motion.div>
+          )}
 
-        {screen === 'report' && selectedExercise && (
-          <ReportScreen
-            exerciseId={selectedExercise}
-            repetitions={sessionReps}
-            progressStats={sessionStats}
-            onRestart={handleRestart}
-            contrastMode={contrastMode}
-          />
-        )}
+          {screen === 'report' && selectedExercise && (
+            <motion.div
+              key="report"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="flex-1 flex flex-col"
+            >
+              <ReportScreen
+                exerciseId={selectedExercise}
+                repetitions={sessionReps}
+                progressStats={sessionStats}
+                onRestart={handleRestart}
+                contrastMode={contrastMode}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <CameraPermissionModal
           isOpen={showPermissionModal}
@@ -178,71 +200,31 @@ export default function App() {
           contrastMode={contrastMode}
         />
 
-        {/* Floating Quick Accessibility control bar for active rehab workspace */}
-        {screen === 'exercise' && (
-          <div className={`py-3 px-4 flex justify-between items-center text-xs z-40 border-t ${
-            contrastMode ? 'bg-zinc-950 border-stone-800 text-white' : 'bg-slate-900 border-slate-950 text-slate-100'
-          }`}>
-            <div className="flex items-center gap-1.5 font-mono text-slate-400">
-              <Accessibility size={14} className="text-emerald-400" />
-              <span>Accesibilidad Activa</span>
-            </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <button
-                  id="workspace-voice-toggle"
-                  onClick={() => {
-                    if (voiceVolume > 0) {
-                      setVoiceVolume(0);
-                    } else {
-                      setVoiceVolume(0.8);
-                      setIsVoiceEnabled(true);
-                    }
-                  }}
-                  className={`flex items-center gap-1 cursor-pointer font-bold transition font-mono ${
-                    voiceVolume > 0 ? 'text-emerald-400' : 'text-slate-500'
-                  }`}
-                  title={voiceVolume > 0 ? "Silenciar voz" : "Activar voz"}
-                >
-                  {voiceVolume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  <span>Voz</span>
-                </button>
-                <div className="flex items-center gap-1 bg-slate-950/60 border border-slate-800 px-2 py-0.5 rounded-lg">
-                  <input
-                    id="footer-voice-volume-slider"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={voiceVolume}
-                    aria-label="Ajustar volumen"
-                    onChange={(e) => {
-                      const newVolume = parseFloat(e.target.value);
-                      setVoiceVolume(newVolume);
-                      if (newVolume > 0) {
-                        setIsVoiceEnabled(true);
-                      }
-                    }}
-                    className="w-14 sm:w-16 h-1 accent-emerald-400 bg-slate-700/80 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="font-mono text-[9px] text-slate-300 w-6 text-right">
-                    {Math.round(voiceVolume * 100)}%
-                  </span>
-                </div>
-              </div>
-              <button
-                id="workspace-contrast-toggle"
-                onClick={() => setContrastMode(!contrastMode)}
-                className={`flex items-center gap-1 cursor-pointer font-bold transition font-mono ${
-                  contrastMode ? 'text-amber-400' : 'text-slate-500'
-                }`}
-              >
-                <Eye size={14} />
-                <span>Contraste</span>
-              </button>
-            </div>
-          </div>
-        )}
+        <SettingsPanel
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          isVoiceEnabled={isVoiceEnabled}
+          onToggleVoice={() => setIsVoiceEnabled(!isVoiceEnabled)}
+          contrastMode={contrastMode}
+          onToggleContrast={() => setContrastMode(!contrastMode)}
+          voiceGender={voiceGender}
+          onVoiceGenderChange={(gender) => setVoiceGender(gender)}
+          voiceVolume={voiceVolume}
+          onVoiceVolumeChange={(volume) => {
+            setVoiceVolume(volume);
+            if (volume > 0) {
+              setIsVoiceEnabled(true);
+            }
+          }}
+          enableBenefitsExplanation={enableBenefitsExplanation}
+          onToggleExplanation={() => setEnableBenefitsExplanation(!enableBenefitsExplanation)}
+          exercisePace={exercisePace}
+          onExercisePaceChange={(pace) => setExercisePace(pace)}
+          strokeAffectedSide={strokeAffectedSide}
+          onStrokeAffectedSideChange={setStrokeAffectedSide}
+          focusedRehab={focusedRehab}
+          onFocusedRehabChange={setFocusedRehab}
+        />
       </div>
     </div>
   );

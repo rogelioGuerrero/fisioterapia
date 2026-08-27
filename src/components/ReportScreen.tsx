@@ -528,11 +528,11 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.25} />
-              <XAxis dataKey="idx" stroke="#64748b" fontSize={9} fontClassName="font-mono" strokeWidth={1} tickLine={false} tickFormatter={() => ''} />
+              <XAxis dataKey="idx" stroke="#64748b" fontSize={9} className="font-mono" strokeWidth={1} tickLine={false} tickFormatter={() => ''} />
               <YAxis 
                 stroke="#64748b" 
                 fontSize={10} 
-                fontClassName="font-mono" 
+                className="font-mono" 
                 strokeWidth={1}
                 domain={[
                   Math.max(0, currentEx.minAngle - 20), 

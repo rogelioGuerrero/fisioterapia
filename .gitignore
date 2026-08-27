@@ -1,8 +1,12 @@
 node_modules/
 build/
 dist/
+dev-dist/
 coverage/
 .DS_Store
 *.log
 .env*
 !.env.example
+
+# Artefactos espurios del sistema (no pertenecen al repo)
+System.Drawing.Drawing2D.GraphicsPath

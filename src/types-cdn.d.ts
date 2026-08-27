@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/// <reference types="vite-plugin-pwa/client" />
+
 declare module 'https://*' {
   const value: any;
   export default value;

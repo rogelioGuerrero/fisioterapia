@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Camera, ShieldCheck, Lock, X, Loader2, AlertTriangle } from 'lucide-react';
 
 interface CameraPermissionModalProps {
@@ -21,21 +22,29 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className={`absolute inset-0 transition-opacity duration-300 ${
-          contrastMode ? 'bg-black/90' : 'bg-slate-950/80 backdrop-blur-md'
-        }`}
-        onClick={!isRequesting ? onClose : undefined}
-      />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className={`absolute inset-0 ${
+            contrastMode ? 'bg-black/90' : 'bg-slate-950/80 backdrop-blur-md'
+          }`}
+          onClick={!isRequesting ? onClose : undefined}
+        />
       
       {/* Modal Card */}
-      <div 
+      <motion.div
         id="camera-permission-modal"
-        className={`relative w-full max-w-md rounded-3xl border-2 shadow-2xl overflow-hidden p-6 sm:p-8 z-10 transition-all duration-300 ${
-          contrastMode 
-            ? 'bg-zinc-950 border-yellow-400 text-white' 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className={`relative w-full max-w-md rounded-3xl border-2 shadow-2xl overflow-hidden p-6 sm:p-8 z-10 ${
+          contrastMode
+            ? 'bg-zinc-950 border-yellow-400 text-white'
             : 'bg-slate-900/95 border-slate-700/60 text-white'
         }`}
       >
@@ -121,44 +130,47 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="w-full flex flex-col sm:flex-row gap-3">
-            <button
-              id="cancel-permission-btn"
-              onClick={onClose}
-              disabled={isRequesting}
-              className={`w-full py-3.5 rounded-2xl font-black text-xs tracking-widest uppercase cursor-pointer border transition-all h-12 flex items-center justify-center ${
-                contrastMode
-                  ? 'bg-transparent border-zinc-700 hover:border-white text-slate-300 hover:text-white'
-                  : 'bg-slate-800/40 border-slate-750 hover:bg-slate-800 text-slate-300 hover:text-white'
-              }`}
-            >
-              Cancelar
-            </button>
+          <div className="w-full flex flex-col gap-3">
             <button
               id="grant-permission-btn"
               onClick={onGrant}
               disabled={isRequesting}
-              className={`w-full py-3.5 rounded-2xl font-black text-xs tracking-widest uppercase cursor-pointer shadow-lg transition-all h-12 flex items-center justify-center gap-2 ${
+              className={`w-full py-4 rounded-2xl font-black text-sm tracking-wide uppercase cursor-pointer shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
                 contrastMode
                   ? 'bg-yellow-400 hover:bg-yellow-350 text-black shadow-yellow-400/10'
                   : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/10'
               }`}
+              style={{ minHeight: '56px' }}
             >
               {isRequesting ? (
                 <>
-                  <Loader2 size={14} className="animate-spin" />
+                  <Loader2 size={18} className="animate-spin" />
                   <span>Conectando...</span>
                 </>
               ) : (
                 <>
-                  <Camera size={14} />
+                  <Camera size={18} />
                   <span>Continuar</span>
                 </>
               )}
             </button>
+            <button
+              id="cancel-permission-btn"
+              onClick={onClose}
+              disabled={isRequesting}
+              className={`w-full py-3.5 rounded-2xl font-bold text-xs tracking-widest uppercase cursor-pointer border transition-all active:scale-[0.98] ${
+                contrastMode
+                  ? 'bg-transparent border-zinc-700 hover:border-white text-slate-300 hover:text-white'
+                  : 'bg-slate-800/40 border-slate-750 hover:bg-slate-800 text-slate-300 hover:text-white'
+              }`}
+              style={{ minHeight: '48px' }}
+            >
+              Cancelar
+            </button>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
+    </AnimatePresence>
   );
 };

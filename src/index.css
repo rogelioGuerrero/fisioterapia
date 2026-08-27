@@ -2,6 +2,13 @@
 @import "tailwindcss";
 
 @theme {
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --spacing-safe-left: env(safe-area-inset-left, 0px);
+  --spacing-safe-right: env(safe-area-inset-right, 0px);
+}
+
+@theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", monospace;

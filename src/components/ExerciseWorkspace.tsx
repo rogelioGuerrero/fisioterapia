@@ -409,52 +409,30 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
 
     if (enableBenefitsExplanation && currentEx.benefitsExplanation) {
       triggerVoice(welcomePhrase, true);
-      
+
+      // Single short calibration hint after a brief pause — no more 70s of speech
       const t1 = setTimeout(() => {
-        if (active && repetitionsRef.current === 0 && !isCompletedRef.current) {
-          triggerVoice(currentEx.benefitsExplanation!, true);
-        }
-      }, SESSION_PARAMS.speechDelayWelcomeMs);
-
-      const t2 = setTimeout(() => {
-        if (active && repetitionsRef.current === 0 && !isCompletedRef.current) {
-          const speakSteps = `Instrucciones del ejercicio. ${currentEx.instructions.join(" ")}`;
-          triggerVoice(speakSteps, true);
-        }
-      }, SESSION_PARAMS.speechDelayInstructionsMs * delayFactor);
-
-      const t3 = setTimeout(() => {
         if (active && repetitionsRef.current === 0 && !isCompletedRef.current) {
           triggerVoice(AUDIO_PHRASES.calibration_help);
         }
-      }, SESSION_PARAMS.speechDelayCalibrationMs * delayFactor);
+      }, SESSION_PARAMS.speechDelayWelcomeMs);
 
       return () => {
         active = false;
         clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
       };
     } else {
       triggerVoice(welcomePhrase, true);
-      
-      const t1 = setTimeout(() => {
-        if (active && repetitionsRef.current === 0 && !isCompletedRef.current) {
-          const speakSteps = `Pasos a seguir. ${currentEx.instructions.join(" ")}`;
-          triggerVoice(speakSteps, true);
-        }
-      }, SESSION_PARAMS.speechDelayWelcomeMs);
 
-      const t2 = setTimeout(() => {
+      const t1 = setTimeout(() => {
         if (active && repetitionsRef.current === 0 && !isCompletedRef.current) {
           triggerVoice(AUDIO_PHRASES.calibration_help);
         }
-      }, SESSION_PARAMS.speechDelayInstructionsMs * delayFactor);
+      }, SESSION_PARAMS.speechDelayWelcomeMs);
 
       return () => {
         active = false;
         clearTimeout(t1);
-        clearTimeout(t2);
       };
     }
   }, [practiceState]);

@@ -163,15 +163,15 @@ export const EXERCISES: ExerciseDefinition[] = [
 ];
 
 export const AUDIO_PHRASES = {
-  welcome: (title: string) => `Bienvenido a su terapia de ${title}. Tómese su tiempo, realizaremos los movimientos suavemente y a su propio paso.`,
-  calibration_help: 'Por favor, colóquese de manera que la cámara pueda ver su torso y sus brazos con claridad.',
-  calibrated: '¡Excelente! Posición identificada. Empecemos a movernos con calma.',
-  relaxed_prompt: 'Regrese suavemente a la posición de descanso para iniciar la siguiente.',
-  effort_prompt_knee: 'Intente extender la pierna afectada un poco más hacia el frente, ¡excelente intento!',
-  effort_prompt_shoulder: 'Intente elevar el brazo un poco más arriba si le es posible, ¡vamos excelente!',
-  effort_prompt_elbow: 'Intente doblar el codo un poco más hacia su hombro, ¡muy buen esfuerzo!',
-  effort_prompt_abduction: 'Intente alejar el brazo un poco más del cuerpo hacia el lado, ¡excelente!',
-  effort_prompt_trunk: 'Inclínese un poco más hacia el lado con control, ¡muy bien!',
-  rep_count: (count: number) => `¡Muy bien logrado! Lleva ${count} repeticiones.`,
-  final_celebration: '¡Felicidades! Ha completado su sesión de rehabilitación de hoy de forma muy segura. Excelente esfuerzo y constancia.'
+  welcome: (title: string) => `Terapia de ${title}. Mire el video y comience cuando esté listo.`,
+  calibration_help: 'Acérquese a la cámara para ver su cuerpo completo.',
+  calibrated: '¡Excelente! Empecemos con calma.',
+  relaxed_prompt: 'Vuelva a la posición de descanso.',
+  effort_prompt_knee: 'Estire la pierna un poco más, ¡muy bien!',
+  effort_prompt_shoulder: 'Suba el brazo un poco más, ¡excelente!',
+  effort_prompt_elbow: 'Doble el codo un poco más, ¡buen esfuerzo!',
+  effort_prompt_abduction: 'Aleje el brazo hacia el lado, ¡excelente!',
+  effort_prompt_trunk: 'Inclínese un poco más con control, ¡muy bien!',
+  rep_count: (count: number) => `¡Muy bien! Repetición ${count}.`,
+  final_celebration: '¡Felicidades! Sesión completada. Excelente trabajo hoy.'
 };

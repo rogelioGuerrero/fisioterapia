@@ -32,6 +32,7 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [11, 13], // Left or Right depending on configuration
     benefitsExplanation: 'Este ejercicio de auto-asistencia (rango de movimiento pasivo-asistivo) estimula la plasticidad cerebral, evita que el hombro afectado se vuelva rígido y doloroso, y facilita volver a conectar los circuitos nerviosos de movimiento.',
     demoVideo: '/demos/demo-ejercicio-1.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 1 metro de distancia. La cámara debe ver sus hombros y brazos completos.',
   },
   {
     id: 'stroke_unilateral_leg_rehab',
@@ -59,6 +60,7 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [23, 25, 27],
     benefitsExplanation: 'La re-educación de la pierna fomenta el control voluntario del cuádriceps afectado. Ayuda a recuperar la fuerza necesaria para pararse de forma segura, mejora el equilibrio de apoyo y previene la rigidez flexora de la rodilla.',
     demoVideo: '/demos/demo-ejercicio-2.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 1 metro de distancia. La cámara debe ver desde su cintura hasta sus pies.',
   },
   {
     id: 'stroke_bilateral_symmetry',
@@ -84,6 +86,7 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [11, 12, 13, 14],
     benefitsExplanation: 'Mover ambos lados al unísono estimula de forma cruzada ambos hemisferios del cerebro. Esto favorece que el área motora sana auxilie en el re-entrenamiento del área afectada mediante neuronas espejo.',
     demoVideo: '/demos/demo-ejercicio-3.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 1 metro de distancia. La cámara debe ver sus hombros y ambos brazos completos.',
   },
   {
     id: 'stroke_elbow_flexion',
@@ -111,6 +114,7 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [11, 13, 15], // shoulder, elbow, wrist (left or right)
     benefitsExplanation: 'La flexión de codo es fundamental para las actividades de la vida diaria: llevar comida a la boca, cepillarse los dientes, afeitarse. Entrenar este movimiento reactiva el bíceps y mejora la coordinación mano-boca tras un accidente cerebrovascular.',
     demoVideo: '/demos/demo-ejercicio-4.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 80 cm de distancia. La cámara debe ver su hombro, codo y muñeca del brazo afectado.',
   },
   {
     id: 'stroke_shoulder_abduction',
@@ -138,6 +142,7 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [11, 13], // hip, shoulder, elbow (left or right)
     benefitsExplanation: 'La abducción del hombro activa el deltoides medio, músculo clave para levantar objetos a los lados y proteger la articulación. Junto con la flexión, define un "hombro funcional" según los criterios clínicos post-AVC.',
     demoVideo: '/demos/demo-ejercicio-5.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 1 metro de distancia. La cámara debe ver su hombro y brazo completo del lado afectado.',
   },
   {
     id: 'stroke_trunk_lateral_lean',
@@ -165,12 +170,13 @@ export const EXERCISES: ExerciseDefinition[] = [
     keypointsRequired: [11, 12, 23, 24], // shoulders + hips
     benefitsExplanation: 'El control del tronco es el predictor más fuerte de recuperación funcional tras un AVC. Sin control de tronco, no hay control de extremidades. Esta inclinación lateral entrena los oblicuos y mejora el equilibrio sentado, esencial para vestirse, transferirse y caminar de forma segura.',
     demoVideo: '/demos/demo-ejercicio-6.mp4',
+    positioningHint: 'Ponga el teléfono frente a usted sobre una mesa. Siéntese a 1 metro de distancia. La cámara debe ver sus hombros y caderas completos.',
   }
 ];
 
 export const AUDIO_PHRASES = {
   welcome: (title: string) => `Terapia de ${title}. Mire el video y comience cuando esté listo.`,
-  calibration_help: 'Acérquese a la cámara para ver su cuerpo completo.',
+  calibration_help: 'Ponga el teléfono frente a usted, a un metro de distancia, hasta que se detecte su cuerpo.',
   calibrated: '¡Excelente! Empecemos con calma.',
   relaxed_prompt: 'Vuelva a la posición de descanso.',
   effort_prompt_knee: 'Estire la pierna un poco más, ¡muy bien!',

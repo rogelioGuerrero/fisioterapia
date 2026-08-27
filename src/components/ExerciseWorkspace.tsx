@@ -1374,7 +1374,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                       Preparar Alineacion
                     </h3>
                     <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                      Coloque el telefono en una base estable y situese a una distancia donde se le observe por completo.
+                      {currentEx.positioningHint || 'Coloque el teléfono en una base estable y sitúese a una distancia donde se le observe por completo.'}
                     </p>
 
                     {/* Demo video player — shows correct movement before starting */}

@@ -34,6 +34,7 @@ export interface ExerciseDefinition {
   primaryJointName: string;
   benefitsExplanation?: string;
   demoVideo?: string; // Path to demo video in public/demos/
+  positioningHint?: string; // How to position phone/camera for this exercise
 }
 
 export interface ExerciseSession {

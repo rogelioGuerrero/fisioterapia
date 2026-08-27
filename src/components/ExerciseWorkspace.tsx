@@ -1168,11 +1168,36 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
 
             ctx.restore();
           } else {
-            // Draw only relevant side landmarks as dots (not full body)
-            ctx.fillStyle = 'rgba(245, 158, 11, 0.7)';
+            // Not fully detected yet — still draw skeleton with lines so patient
+            // can see what the camera sees and position themselves correctly.
             const relevantLms = landmarksOfInterest.length > 0
               ? landmarksOfInterest
               : [landmarks[11], landmarks[12], landmarks[13], landmarks[14], landmarks[23], landmarks[24], landmarks[25], landmarks[26], landmarks[27], landmarks[28]];
+
+            // Draw connecting lines between visible landmarks (dimmed amber)
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            let prevLm: Landmark | null = null;
+            for (const lm of relevantLms) {
+              if (!lm || (lm.visibility ?? 1) < 0.3) {
+                prevLm = null;
+                continue;
+              }
+              const cx = lm.x * canvas.width;
+              const cy = lm.y * canvas.height;
+              if (prevLm) {
+                ctx.lineTo(cx, cy);
+              } else {
+                ctx.moveTo(cx, cy);
+              }
+              prevLm = lm;
+            }
+            ctx.stroke();
+
+            // Draw joint dots on top
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.8)';
             for (const lm of relevantLms) {
               if (!lm || (lm.visibility ?? 1) < 0.3) continue;
               ctx.beginPath();

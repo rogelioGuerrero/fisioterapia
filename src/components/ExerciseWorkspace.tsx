@@ -1356,10 +1356,21 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                     ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-500/40'
                     : 'bg-red-950/90 text-red-400 border border-red-500/40'
                 }`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isLimbDetected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}`} />
+                  <div className={`w-1.5 h-1.5 rounded-full ${isLimbDetected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}}`} />
                   <span>{isLimbDetected ? 'Rastreo Activo' : 'Alineando'}</span>
                 </div>
               </div>
+
+              {/* Positioning hint when not detected — tells patient what to do */}
+              {!isLimbDetected && practiceState === 'active' && (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                  <div className="bg-amber-950/90 border border-amber-500/50 rounded-xl px-4 py-2.5 text-center shadow-2xl backdrop-blur-md max-w-[280px]">
+                    <p className="text-xs font-bold text-amber-300 leading-snug">
+                      Acerque la cámara para ver su {currentEx.primaryJointName.toLowerCase()} con claridad
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {practiceState === 'not_started' && (
                 <div className="absolute inset-0 bg-slate-950/85 z-30 flex flex-col justify-center items-center p-4 text-center backdrop-blur-md">

@@ -33,6 +33,7 @@ export interface ExerciseDefinition {
   keypointsRequired: number[]; // Index of keypoints in MediaPipe Pose
   primaryJointName: string;
   benefitsExplanation?: string;
+  demoVideo?: string; // Path to demo video in public/demos/
 }
 
 export interface ExerciseSession {

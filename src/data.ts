@@ -30,7 +30,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.shoulderAssisted.target,
     triggerDirection: 'high',
     keypointsRequired: [11, 13], // Left or Right depending on configuration
-    benefitsExplanation: 'Este ejercicio de auto-asistencia (rango de movimiento pasivo-asistivo) estimula la plasticidad cerebral, evita que el hombro afectado se vuelva rígido y doloroso, y facilita volver a conectar los circuitos nerviosos de movimiento.'
+    benefitsExplanation: 'Este ejercicio de auto-asistencia (rango de movimiento pasivo-asistivo) estimula la plasticidad cerebral, evita que el hombro afectado se vuelva rígido y doloroso, y facilita volver a conectar los circuitos nerviosos de movimiento.',
+    demoVideo: '/demos/demo-ejercicio-1.mp4',
   },
   {
     id: 'stroke_unilateral_leg_rehab',
@@ -56,7 +57,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.kneeExtension.target,
     triggerDirection: 'high',
     keypointsRequired: [23, 25, 27],
-    benefitsExplanation: 'La re-educación de la pierna fomenta el control voluntario del cuádriceps afectado. Ayuda a recuperar la fuerza necesaria para pararse de forma segura, mejora el equilibrio de apoyo y previene la rigidez flexora de la rodilla.'
+    benefitsExplanation: 'La re-educación de la pierna fomenta el control voluntario del cuádriceps afectado. Ayuda a recuperar la fuerza necesaria para pararse de forma segura, mejora el equilibrio de apoyo y previene la rigidez flexora de la rodilla.',
+    demoVideo: '/demos/demo-ejercicio-2.mp4',
   },
   {
     id: 'stroke_bilateral_symmetry',
@@ -80,7 +82,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.bilateralSymmetry.target,
     triggerDirection: 'high',
     keypointsRequired: [11, 12, 13, 14],
-    benefitsExplanation: 'Mover ambos lados al unísono estimula de forma cruzada ambos hemisferios del cerebro. Esto favorece que el área motora sana auxilie en el re-entrenamiento del área afectada mediante neuronas espejo.'
+    benefitsExplanation: 'Mover ambos lados al unísono estimula de forma cruzada ambos hemisferios del cerebro. Esto favorece que el área motora sana auxilie en el re-entrenamiento del área afectada mediante neuronas espejo.',
+    demoVideo: '/demos/demo-ejercicio-3.mp4',
   },
   {
     id: 'stroke_elbow_flexion',
@@ -106,7 +109,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.elbowFlexion.rest,
     triggerDirection: 'low',
     keypointsRequired: [11, 13, 15], // shoulder, elbow, wrist (left or right)
-    benefitsExplanation: 'La flexión de codo es fundamental para las actividades de la vida diaria: llevar comida a la boca, cepillarse los dientes, afeitarse. Entrenar este movimiento reactiva el bíceps y mejora la coordinación mano-boca tras un accidente cerebrovascular.'
+    benefitsExplanation: 'La flexión de codo es fundamental para las actividades de la vida diaria: llevar comida a la boca, cepillarse los dientes, afeitarse. Entrenar este movimiento reactiva el bíceps y mejora la coordinación mano-boca tras un accidente cerebrovascular.',
+    demoVideo: '/demos/demo-ejercicio-4.mp4',
   },
   {
     id: 'stroke_shoulder_abduction',
@@ -132,7 +136,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.shoulderAbduction.target,
     triggerDirection: 'high',
     keypointsRequired: [11, 13], // hip, shoulder, elbow (left or right)
-    benefitsExplanation: 'La abducción del hombro activa el deltoides medio, músculo clave para levantar objetos a los lados y proteger la articulación. Junto con la flexión, define un "hombro funcional" según los criterios clínicos post-AVC.'
+    benefitsExplanation: 'La abducción del hombro activa el deltoides medio, músculo clave para levantar objetos a los lados y proteger la articulación. Junto con la flexión, define un "hombro funcional" según los criterios clínicos post-AVC.',
+    demoVideo: '/demos/demo-ejercicio-5.mp4',
   },
   {
     id: 'stroke_trunk_lateral_lean',
@@ -158,7 +163,8 @@ export const EXERCISES: ExerciseDefinition[] = [
     maxAngle: EXERCISE_ANGLES.trunkLateralLean.target,
     triggerDirection: 'high',
     keypointsRequired: [11, 12, 23, 24], // shoulders + hips
-    benefitsExplanation: 'El control del tronco es el predictor más fuerte de recuperación funcional tras un AVC. Sin control de tronco, no hay control de extremidades. Esta inclinación lateral entrena los oblicuos y mejora el equilibrio sentado, esencial para vestirse, transferirse y caminar de forma segura.'
+    benefitsExplanation: 'El control del tronco es el predictor más fuerte de recuperación funcional tras un AVC. Sin control de tronco, no hay control de extremidades. Esta inclinación lateral entrena los oblicuos y mejora el equilibrio sentado, esencial para vestirse, transferirse y caminar de forma segura.',
+    demoVideo: '/demos/demo-ejercicio-6.mp4',
   }
 ];
 

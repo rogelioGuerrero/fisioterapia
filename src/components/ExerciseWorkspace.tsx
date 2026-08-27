@@ -18,7 +18,7 @@ import {
   HAPTIC_PATTERNS,
   CAMERA_CONFIG,
 } from '../clinicalConstants';
-import { ArrowLeft, Camera, RefreshCw, Volume2, Activity, Brain, AlertCircle, Award } from 'lucide-react';
+import { ArrowLeft, Camera, RefreshCw, Volume2, Activity, Brain, AlertCircle, Award, PlayCircle } from 'lucide-react';
 
 interface ExerciseWorkspaceProps {
   exerciseId: ExerciseType;
@@ -71,6 +71,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
   const [activeSide, setActiveSide] = useState<'izquierda' | 'derecha'>('derecha');
   const [isLimbDetected, setIsLimbDetected] = useState<boolean>(false);
   const [sessionCompleted, setSessionCompleted] = useState<boolean>(false);
+  const [showDemoVideo, setShowDemoVideo] = useState<boolean>(false);
   const isCompletedRef = useRef<boolean>(false);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
   const wakeLockRef = useRef<any>(null);
@@ -1375,6 +1376,45 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                     <p className="text-xs text-slate-300 mt-2 leading-relaxed">
                       Coloque el telefono en una base estable y situese a una distancia donde se le observe por completo.
                     </p>
+
+                    {/* Demo video player — shows correct movement before starting */}
+                    {currentEx.demoVideo && (
+                      <div className="mt-3 w-full">
+                        {showDemoVideo ? (
+                          <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-black">
+                            <video
+                              src={currentEx.demoVideo}
+                              title={`Demostración: ${currentEx.title}`}
+                              className="w-full h-auto max-h-[200px] object-contain"
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              controls
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowDemoVideo(false)}
+                              className="absolute top-1.5 right-1.5 bg-slate-950/80 text-white text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-700 cursor-pointer z-10"
+                            >
+                              Cerrar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowDemoVideo(true)}
+                            className="w-full flex items-center gap-2.5 py-2.5 px-3 bg-blue-950/60 border border-blue-500/40 rounded-xl text-blue-300 hover:bg-blue-900/40 transition-all cursor-pointer active:scale-95"
+                          >
+                            <PlayCircle size={20} className="shrink-0" />
+                            <span className="text-xs font-bold text-left leading-tight">
+                              Ver demostración del movimiento
+                            </span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <div className="mt-3 w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-left flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${isLimbDetected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />

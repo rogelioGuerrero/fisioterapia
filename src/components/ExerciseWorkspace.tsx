@@ -162,6 +162,34 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
     return Math.round((angleRad * 180) / Math.PI);
   };
 
+  // Generic lateral angle: angle of a line from point A to point B relative to vertical.
+  // Used for hip abduction (hip→knee) and cervical flexion (shoulder-mid→nose).
+  const calculateLateralAngle = (a: Landmark, b: Landmark): number => {
+    if (!a || !b) return 0;
+    const dx = b.x - a.x;
+    const dy = a.y - b.y; // In screen coords, y increases downward
+    if (dy <= 0) return 0;
+    const angleRad = Math.atan2(Math.abs(dx), Math.abs(dy));
+    return Math.round((angleRad * 180) / Math.PI);
+  };
+
+  // Draw text that compensates for the CSS scaleX(-1) mirror on the canvas.
+  // The canvas element has transform: scaleX(-1) to match the mirrored video,
+  // which inverts all drawn text horizontally. This helper temporarily un-mirrors
+  // the text by applying a local scale(-1,1) around the text position.
+  const drawUnmirroredText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number
+  ) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(-1, 1);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -486,7 +514,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
           const activeStrokeSide: 'izquierda' | 'derecha' = strokeAffectedSide === 'ambos' ? 'derecha' : strokeAffectedSide;
           const healthySide: 'izquierda' | 'derecha' = activeStrokeSide === 'izquierda' ? 'derecha' : 'izquierda';
 
-          if (exerciseId === 'stroke_unilateral_rehab') {
+          if (exerciseId === 'assisted_shoulder_abduction') {
             // Unilateral shoulder elevation auto-assisted (Hip, Shoulder, Elbow)
             if (activeStrokeSide === 'izquierda') {
               sideSelected = 'izquierda';
@@ -521,87 +549,58 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 if (healthyLandmarks[0] && healthyLandmarks[1] && healthyLandmarks[2]) {
                   angle = calculateAngle(healthyLandmarks[0], healthyLandmarks[1], healthyLandmarks[2]);
                 } else {
-                  angle = EXERCISE_ANGLES.shoulderAssisted.rest; // resting fallback
+                  angle = EXERCISE_ANGLES.assistedShoulderAbduction.rest; // resting fallback
                 }
               } else if (landmarksOfInterest[0] && landmarksOfInterest[1] && landmarksOfInterest[2]) {
                 angle = calculateAngle(landmarksOfInterest[0], landmarksOfInterest[1], landmarksOfInterest[2]);
               } else {
-                angle = EXERCISE_ANGLES.shoulderAssisted.rest;
+                angle = EXERCISE_ANGLES.assistedShoulderAbduction.rest;
               }
             }
 
-          } else if (exerciseId === 'stroke_unilateral_leg_rehab') {
-            // Unilateral leg extension sentado (Hip, Knee, Ankle), supporting tracking BOTH legs simultaneously if 'ambos' is selected
+          } else if (exerciseId === 'seated_hip_abduction') {
+            // Seated hip abduction: angle of hip→knee relative to vertical (frontal plane)
             if (strokeAffectedSide === 'ambos') {
               sideSelected = 'ambos' as any;
-              
-              const leftLegVisible = (landmarks[23]?.visibility || 0) > (focusedRehab ? VISIBILITY_THRESHOLDS.permissive : VISIBILITY_THRESHOLDS.normal) &&
-                                     (landmarks[25]?.visibility || 0) > (focusedRehab ? VISIBILITY_THRESHOLDS.permissive : VISIBILITY_THRESHOLDS.normal);
-              const rightLegVisible = (landmarks[24]?.visibility || 0) > (focusedRehab ? VISIBILITY_THRESHOLDS.permissive : VISIBILITY_THRESHOLDS.normal) &&
-                                      (landmarks[26]?.visibility || 0) > (focusedRehab ? VISIBILITY_THRESHOLDS.permissive : VISIBILITY_THRESHOLDS.normal);
-              
-              detected = leftLegVisible || rightLegVisible;
-              
-              if (detected) {
-                // Calculate left leg angle
-                if (landmarks[23] && landmarks[25] && landmarks[27]) {
-                  leftAngle = calculateAngle(landmarks[23], landmarks[25], landmarks[27]);
-                } else {
-                  leftAngle = EXERCISE_ANGLES.kneeExtension.rest;
-                }
 
-                // Calculate right leg angle
-                if (landmarks[24] && landmarks[26] && landmarks[28]) {
-                  rightAngle = calculateAngle(landmarks[24], landmarks[26], landmarks[28]);
-                } else {
-                  rightAngle = EXERCISE_ANGLES.kneeExtension.rest;
+              const leftHipVisible = (landmarks[23]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal &&
+                                     (landmarks[25]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
+              const rightHipVisible = (landmarks[24]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal &&
+                                      (landmarks[26]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
+
+              detected = leftHipVisible || rightHipVisible;
+
+              if (detected) {
+                if (landmarks[23] && landmarks[25]) {
+                  leftAngle = calculateLateralAngle(landmarks[23], landmarks[25]);
                 }
-                
-                // The primary tracking metric angle is whichever knee is currently performing the movement (maximum angle)
+                if (landmarks[24] && landmarks[26]) {
+                  rightAngle = calculateLateralAngle(landmarks[24], landmarks[26]);
+                }
                 angle = Math.max(leftAngle, rightAngle);
+                landmarksOfInterest = [landmarks[23], landmarks[25], landmarks[24], landmarks[26]].filter(Boolean) as Landmark[];
               }
             } else {
               if (activeStrokeSide === 'izquierda') {
                 sideSelected = 'izquierda';
-                landmarksOfInterest = [landmarks[23], landmarks[25], landmarks[27]];
-                
-                if (focusedRehab) {
-                  detected = (landmarks[23]?.visibility || 0) > VISIBILITY_THRESHOLDS.permissive; // extremely low threshold
-                } else {
-                  detected = (landmarks[23]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal && (landmarks[25]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
-                }
+                landmarksOfInterest = [landmarks[23], landmarks[25]];
+
+                detected = (landmarks[23]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal &&
+                           (landmarks[25]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
               } else {
                 sideSelected = 'derecha';
-                landmarksOfInterest = [landmarks[24], landmarks[26], landmarks[28]];
+                landmarksOfInterest = [landmarks[24], landmarks[26]];
 
-                if (focusedRehab) {
-                  detected = (landmarks[24]?.visibility || 0) > VISIBILITY_THRESHOLDS.permissive;
-                } else {
-                  detected = (landmarks[24]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal && (landmarks[26]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
-                }
+                detected = (landmarks[24]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal &&
+                           (landmarks[26]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
               }
 
               if (detected) {
-                const kneePoint = landmarksOfInterest[1];
-                if (focusedRehab && (!kneePoint || (kneePoint.visibility || 0) < VISIBILITY_THRESHOLDS.fallback)) {
-                  // Mirror healthy leg
-                  const healthyLeg = healthySide === 'izquierda'
-                    ? [landmarks[23], landmarks[25], landmarks[27]]
-                    : [landmarks[24], landmarks[26], landmarks[28]];
-                  if (healthyLeg[0] && healthyLeg[1] && healthyLeg[2]) {
-                    angle = calculateAngle(healthyLeg[0], healthyLeg[1], healthyLeg[2]);
-                  } else {
-                    angle = EXERCISE_ANGLES.kneeExtension.rest;
-                  }
-                } else if (landmarksOfInterest[0] && landmarksOfInterest[1] && landmarksOfInterest[2]) {
-                  angle = calculateAngle(landmarksOfInterest[0], landmarksOfInterest[1], landmarksOfInterest[2]);
-                } else {
-                  angle = EXERCISE_ANGLES.kneeExtension.rest;
-                }
+                angle = calculateLateralAngle(landmarksOfInterest[0], landmarksOfInterest[1]);
               }
             }
 
-          } else if (exerciseId === 'stroke_bilateral_symmetry') {
+          } else if (exerciseId === 'bilateral_arm_abduction') {
             // Bilateral Arms Coordination. Check both sides
             // Left: Hip(23), Shoulder(11), Elbow(13)
             // Right: Hip(24), Shoulder(12), Elbow(14)
@@ -624,10 +623,10 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
             if (detected) {
               if (landmarks[23] && landmarks[11] && landmarks[13]) {
                 leftAngle = calculateAngle(landmarks[23], landmarks[11], landmarks[13]);
-              } else { leftAngle = EXERCISE_ANGLES.bilateralSymmetry.rest; }
+              } else { leftAngle = EXERCISE_ANGLES.bilateralArmAbduction.rest; }
               if (landmarks[24] && landmarks[12] && landmarks[14]) {
                 rightAngle = calculateAngle(landmarks[24], landmarks[12], landmarks[14]);
-              } else { rightAngle = EXERCISE_ANGLES.bilateralSymmetry.rest; }
+              } else { rightAngle = EXERCISE_ANGLES.bilateralArmAbduction.rest; }
 
               if (focusedRehab) {
                 // Avoid joint check failure by mirroring the tracked healthy side for the affected side!
@@ -640,48 +639,31 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               
               angle = Math.round((leftAngle + rightAngle) / 2);
             }
-          } else if (exerciseId === 'stroke_elbow_flexion') {
-            // Elbow flexion: shoulder→elbow→wrist (landmarks 11/13/15 or 12/14/16)
-            // triggerDirection: 'low' — angle DECREASES as elbow flexes.
-            if (activeStrokeSide === 'izquierda') {
-              sideSelected = 'izquierda';
-              landmarksOfInterest = [landmarks[11], landmarks[13], landmarks[15]];
+          } else if (exerciseId === 'cervical_lateral_flexion') {
+            // Cervical lateral flexion: angle of shoulder-midpoint→nose relative to vertical
+            // Landmarks: 0 (nose), 11 (left shoulder), 12 (right shoulder)
+            const noseVisible = (landmarks[0]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
+            const shouldersVisible = (landmarks[11]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal &&
+                                     (landmarks[12]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
 
-              if (focusedRehab) {
-                detected = (landmarks[12]?.visibility || 0) > VISIBILITY_THRESHOLDS.relaxed && (landmarks[14]?.visibility || 0) > VISIBILITY_THRESHOLDS.relaxed;
-              } else {
-                detected = (landmarks[11]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal && (landmarks[13]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
-              }
-            } else {
+            detected = noseVisible && shouldersVisible;
+
+            if (strokeAffectedSide === 'ambos') {
               sideSelected = 'derecha';
-              landmarksOfInterest = [landmarks[12], landmarks[14], landmarks[16]];
-
-              if (focusedRehab) {
-                detected = (landmarks[11]?.visibility || 0) > VISIBILITY_THRESHOLDS.relaxed && (landmarks[13]?.visibility || 0) > VISIBILITY_THRESHOLDS.relaxed;
-              } else {
-                detected = (landmarks[12]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal && (landmarks[14]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
-              }
+            } else {
+              sideSelected = strokeAffectedSide;
             }
 
             if (detected) {
-              const elbowPoint = landmarksOfInterest[1];
-              if (focusedRehab && (!elbowPoint || (elbowPoint.visibility || 0) < VISIBILITY_THRESHOLDS.fallback)) {
-                // Mirror healthy side
-                const healthyArm = healthySide === 'izquierda'
-                  ? [landmarks[11], landmarks[13], landmarks[15]]
-                  : [landmarks[12], landmarks[14], landmarks[16]];
-                if (healthyArm[0] && healthyArm[1] && healthyArm[2]) {
-                  angle = calculateAngle(healthyArm[0], healthyArm[1], healthyArm[2]);
-                } else {
-                  angle = EXERCISE_ANGLES.elbowFlexion.rest;
-                }
-              } else if (landmarksOfInterest[0] && landmarksOfInterest[1] && landmarksOfInterest[2]) {
-                angle = calculateAngle(landmarksOfInterest[0], landmarksOfInterest[1], landmarksOfInterest[2]);
-              } else {
-                angle = EXERCISE_ANGLES.elbowFlexion.rest;
-              }
+              // Calculate shoulder midpoint
+              const shoulderMid: Landmark = {
+                x: (landmarks[11].x + landmarks[12].x) / 2,
+                y: (landmarks[11].y + landmarks[12].y) / 2,
+              };
+              angle = calculateLateralAngle(shoulderMid, landmarks[0]);
+              landmarksOfInterest = [landmarks[0], landmarks[11], landmarks[12]];
             }
-          } else if (exerciseId === 'stroke_shoulder_abduction') {
+          } else if (exerciseId === 'shoulder_abduction') {
             // Shoulder abduction: hip→shoulder→elbow (same landmarks as flexion, frontal plane movement)
             if (activeStrokeSide === 'izquierda') {
               sideSelected = 'izquierda';
@@ -720,7 +702,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 angle = EXERCISE_ANGLES.shoulderAbduction.rest;
               }
             }
-          } else if (exerciseId === 'stroke_trunk_lateral_lean') {
+          } else if (exerciseId === 'trunk_lateral_lean') {
             // Trunk lateral lean: angle between shoulder line and hip line (relative to vertical)
             // Uses landmarks 11, 12 (shoulders) and 23, 24 (hips)
             const shouldersVisible = (landmarks[11]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal && (landmarks[12]?.visibility || 0) > VISIBILITY_THRESHOLDS.normal;
@@ -759,7 +741,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
             let isRelaxed = false;
             let isExtended = false;
 
-            if (exerciseId === 'stroke_bilateral_symmetry') {
+            if (exerciseId === 'bilateral_arm_abduction') {
               // Symmetrical tracking checks (always 'high' direction)
               isRelaxed = leftAngle <= minGoal && rightAngle <= minGoal;
               isExtended = leftAngle >= maxGoal && rightAngle >= maxGoal;
@@ -830,14 +812,16 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                   if (elapsedEffort > EFFORT_PROMPT_DELAY_MS && !hasEncouragedRef.current) {
                     // Speak high-visibility verbal encouragement
                     const encouragementText =
-                      exerciseId === 'stroke_unilateral_leg_rehab'
-                        ? AUDIO_PHRASES.effort_prompt_knee
-                        : exerciseId === 'stroke_elbow_flexion'
-                        ? AUDIO_PHRASES.effort_prompt_elbow
-                        : exerciseId === 'stroke_shoulder_abduction'
+                      exerciseId === 'seated_hip_abduction'
+                        ? AUDIO_PHRASES.effort_prompt_hip
+                        : exerciseId === 'cervical_lateral_flexion'
+                        ? AUDIO_PHRASES.effort_prompt_neck
+                        : exerciseId === 'shoulder_abduction'
                         ? AUDIO_PHRASES.effort_prompt_abduction
-                        : exerciseId === 'stroke_trunk_lateral_lean'
+                        : exerciseId === 'trunk_lateral_lean'
                         ? AUDIO_PHRASES.effort_prompt_trunk
+                        : exerciseId === 'bilateral_arm_abduction'
+                        ? AUDIO_PHRASES.effort_prompt_bilateral
                         : AUDIO_PHRASES.effort_prompt_shoulder;
                     triggerVoice(encouragementText, true);
                     hasEncouragedRef.current = true;
@@ -855,7 +839,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
             // Draw skeletal overlays (Skeletor map in vibrant neon lines)
             ctx.save();
             
-            if (exerciseId === 'stroke_bilateral_symmetry') {
+            if (exerciseId === 'bilateral_arm_abduction') {
               // Draw bilateral lines
               ctx.strokeStyle = focusedRehab ? '#3B82F6' : '#10B981'; // Blue for focused assisted, Green for active
               ctx.lineWidth = 2.5;
@@ -918,12 +902,12 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.fillStyle = '#F59E0B';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${prAngle}°`, vertexX, vertexY - 31);
+                drawUnmirroredText(ctx, `${prAngle}°`, vertexX, vertexY - 31);
               };
 
               if (landmarks[11]) drawAngleBubble(landmarks[11], leftAngle);
               if (landmarks[12]) drawAngleBubble(landmarks[12], rightAngle);
-            } else if (exerciseId === 'stroke_unilateral_leg_rehab' && strokeAffectedSide === 'ambos') {
+            } else if (exerciseId === 'seated_hip_abduction' && strokeAffectedSide === 'ambos') {
               // Draw BOTH legs
               ctx.strokeStyle = focusedRehab ? '#3B82F6' : '#10B981'; // Blue for focused assisted, Green for normal active
               ctx.lineWidth = 2.5;
@@ -990,12 +974,12 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.fillStyle = '#F59E0B';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${kneeAngle}°`, vertexX, vertexY - 31);
+                drawUnmirroredText(ctx, `${kneeAngle}°`, vertexX, vertexY - 31);
               };
  
               if (landmarks[25]) drawAngleBubble(landmarks[25], leftAngle);
               if (landmarks[26]) drawAngleBubble(landmarks[26], rightAngle);
-            } else if (exerciseId === 'stroke_trunk_lateral_lean') {
+            } else if (exerciseId === 'trunk_lateral_lean') {
               // Draw trunk: shoulder line + hip line + vertical reference
               ctx.strokeStyle = focusedRehab ? '#3B82F6' : '#10B981';
               ctx.lineWidth = 3;
@@ -1076,7 +1060,82 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.fillStyle = '#F59E0B';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${angle}°`, shoulderMidX, shoulderMidY - 31);
+                drawUnmirroredText(ctx, `${angle}°`, shoulderMidX, shoulderMidY - 31);
+              }
+            } else if (exerciseId === 'cervical_lateral_flexion') {
+              // Draw cervical: shoulder line + nose + vertical reference
+              ctx.strokeStyle = focusedRehab ? '#3B82F6' : '#10B981';
+              ctx.lineWidth = 3;
+              ctx.lineCap = 'round';
+
+              // Draw shoulder line (11→12)
+              if (landmarks[11] && landmarks[12]) {
+                ctx.beginPath();
+                ctx.moveTo(landmarks[11].x * canvas.width, landmarks[11].y * canvas.height);
+                ctx.lineTo(landmarks[12].x * canvas.width, landmarks[12].y * canvas.height);
+                ctx.stroke();
+              }
+
+              // Draw vertical reference from shoulder center (dashed)
+              if (landmarks[11] && landmarks[12]) {
+                const shoulderMidX = ((landmarks[11].x + landmarks[12].x) / 2) * canvas.width;
+                const shoulderMidY = ((landmarks[11].y + landmarks[12].y) / 2) * canvas.height;
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath();
+                ctx.moveTo(shoulderMidX, shoulderMidY);
+                ctx.lineTo(shoulderMidX, shoulderMidY - 150);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw lean line (shoulder center → nose)
+                if (landmarks[0]) {
+                  const noseX = landmarks[0].x * canvas.width;
+                  const noseY = landmarks[0].y * canvas.height;
+                  ctx.strokeStyle = '#F59E0B';
+                  ctx.lineWidth = 2.5;
+                  ctx.beginPath();
+                  ctx.moveTo(shoulderMidX, shoulderMidY);
+                  ctx.lineTo(noseX, noseY);
+                  ctx.stroke();
+                }
+              }
+
+              // Draw joint nodes
+              const neckJoints = [landmarks[0], landmarks[11], landmarks[12]].filter(Boolean);
+              neckJoints.forEach((lm) => {
+                const cx = lm.x * canvas.width;
+                const cy = lm.y * canvas.height;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 6, 0, 2 * Math.PI);
+                ctx.fillStyle = '#F59E0B';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(cx, cy, 8, 0, 2 * Math.PI);
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+              });
+
+              // Draw angle bubble at nose
+              if (landmarks[0]) {
+                const noseX = landmarks[0].x * canvas.width;
+                const noseY = landmarks[0].y * canvas.height;
+                ctx.fillStyle = '#0F172A';
+                ctx.strokeStyle = '#3B82F6';
+                ctx.lineWidth = 2;
+                const padding = 8;
+                ctx.font = 'bold 20px "JetBrains Mono", Courier, monospace';
+                const metrics = ctx.measureText(`${angle}°`);
+                const width = metrics.width + padding * 2;
+                const height = 28;
+                ctx.fillRect(noseX - width / 2, noseY - 45, width, height);
+                ctx.strokeRect(noseX - width / 2, noseY - 45, width, height);
+                ctx.fillStyle = '#F59E0B';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                drawUnmirroredText(ctx, `${angle}°`, noseX, noseY - 31);
               }
             } else {
               // Draw unilateral active joint bone segments lines
@@ -1141,7 +1200,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.fillStyle = '#F59E0B';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${angle}°`, vertexX, vertexY - 31);
+                drawUnmirroredText(ctx, `${angle}°`, vertexX, vertexY - 31);
               }
             }
 

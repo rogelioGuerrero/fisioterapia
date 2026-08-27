@@ -4,20 +4,20 @@
  */
 
 export type ExerciseType =
-  | 'stroke_unilateral_rehab'
-  | 'stroke_unilateral_leg_rehab'
-  | 'stroke_bilateral_symmetry'
-  | 'stroke_elbow_flexion'
-  | 'stroke_shoulder_abduction'
-  | 'stroke_trunk_lateral_lean';
+  | 'shoulder_abduction'
+  | 'trunk_lateral_lean'
+  | 'bilateral_arm_abduction'
+  | 'assisted_shoulder_abduction'
+  | 'seated_hip_abduction'
+  | 'cervical_lateral_flexion';
 
 export type ExercisePace = 'lento' | 'normal' | 'rapido';
 
 // How the angle is measured from landmarks
-export type MeasurementType = 'joint_angle' | 'trunk_lean';
+export type MeasurementType = 'joint_angle' | 'lateral_lean';
 
 // Body region for UI grouping
-export type ExerciseCategory = 'upper_limb' | 'lower_limb' | 'trunk';
+export type ExerciseCategory = 'upper_limb' | 'lower_limb' | 'trunk' | 'neck';
 
 export interface ExerciseDefinition {
   id: ExerciseType;
@@ -27,14 +27,14 @@ export interface ExerciseDefinition {
   measurementType: MeasurementType;
   targetJoints: string;
   instructions: string[];
-  minAngle: number; // For 'high' direction: resting position. For 'low' direction: target position.
-  maxAngle: number; // For 'high' direction: target position. For 'low' direction: resting position.
-  triggerDirection: 'high' | 'low'; // high if extension increases angle, low if flexion decreases angle
-  keypointsRequired: number[]; // Index of keypoints in MediaPipe Pose
+  minAngle: number; // Resting position
+  maxAngle: number; // Target position
+  triggerDirection: 'high' | 'low';
+  keypointsRequired: number[];
   primaryJointName: string;
   benefitsExplanation?: string;
-  demoVideo?: string; // Path to demo video in public/demos/
-  positioningHint?: string; // How to position phone/camera for this exercise
+  demoVideo?: string;
+  positioningHint?: string;
 }
 
 export interface ExerciseSession {

@@ -47,58 +47,61 @@ export const STROKE_FUNCTIONAL_THRESHOLDS = {
 } as const;
 
 // ─── Ángulos de posición por ejercicio (grados) ──────────────────────────────
-// Ángulos medidos entre landmarks MediaPipe (cadera-hombro-codo o cadera-rodilla-tobillo).
+// Ángulos medidos entre landmarks MediaPipe.
+// Todos los ejercicios funcionan de FRENTE a la cámara (plano frontal).
 export const EXERCISE_ANGLES = {
-  // Ejercicio 1: Movilidad Asistida de Brazo (cadera→hombro→codo)
-  // Posición descanso: brazo en regazo, ángulo ~25-30°.
-  // Objetivo: 90° = flexión funcional de hombro (Serrezuela 2023).
-  shoulderAssisted: {
-    rest: 25,
-    target: 90,
-  },
-  // Ejercicio 2: Re-educación de Pierna Afectada (cadera→rodilla→tobillo)
-  // Posición descanso: sentado con pie en piso, ángulo ~90-95° (no 110°).
-  // Objetivo: 160° = extensión casi completa, terapéuticamente significativa.
-  //   AAOS extensión completa = 0° flexión = ~180° en nuestro sistema de landmarks.
-  //   160° deja margen de seguridad para espasticidad post-AVC.
-  kneeExtension: {
-    rest: 95,
-    target: 160,
-  },
-  // Ejercicio 3: Sincronía Simétrica de Brazos (cadera→hombro→codo, ambos lados)
-  // Posición descanso: brazos a los lados, ángulo ~10-20°. Umbral 25° da margen.
-  // Objetivo: 90° = flexión bilateral funcional (Serrezuela 2023).
-  bilateralSymmetry: {
-    rest: 25,
-    target: 90,
-  },
-  // Ejercicio 4: Flexión de Codo (hombro→codo→muñeca)
-  // triggerDirection: 'low' — el ángulo DISMINUYE al flexionar.
-  // Posición descanso: brazo extendido, ángulo ~170-180°. Umbral 160° da margen.
-  // Objetivo: 50° = flexión funcional (AAOS normal = 150° flexión, ~30° ángulo interno).
-  //   50° deja margen para espasticidad. Necesario para alimentación, afeitado, higiene.
-  elbowFlexion: {
-    rest: 160,   // maxAngle (resting = arm extended, high angle)
-    target: 50,  // minAngle (target = arm flexed, low angle)
-  },
-  // Ejercicio 5: Abducción de Hombro (cadera→hombro→codo, plano frontal)
-  // Mismos landmarks que flexión, pero el movimiento es lateral (abducción).
+  // Ejercicio 1: Abducción de Hombro (cadera→hombro→codo, plano frontal)
   // Posición descanso: brazo a los lados, ángulo ~10-20°.
-  // Objetivo: 90° = abducción funcional (Serrezuela 2023: ≥75° = "functional shoulder").
-  //   AAOS normal: 180° abducción. 90° es objetivo conservador post-AVC.
+  // Objetivo: 90° = abducción funcional.
+  //   AAOS normal: 180° abducción. 90° es objetivo conservador.
+  //   Serrezuela 2023: ≥75° abducción = "hombro funcional".
   shoulderAbduction: {
     rest: 20,
     target: 90,
   },
-  // Ejercicio 6: Inclinación Lateral de Tronco (línea hombros vs línea caderas)
+  // Ejercicio 2: Abducción Asistida de Hombro (cadera→hombro→codo, lado afectado)
+  // Mismo ángulo que abducción pero el brazo sano asiste al afectado.
+  // Útil para hemiparesia, post-quirúrgico, hombro congelado.
+  assistedShoulderAbduction: {
+    rest: 20,
+    target: 90,
+  },
+  // Ejercicio 3: Abducción Bilateral de Brazos (cadera→hombro→codo, ambos lados)
+  // Ambos brazos se elevan hacia los lados simultáneamente.
+  // Estimulación bilateral simétrica de la corteza cerebral.
+  bilateralArmAbduction: {
+    rest: 20,
+    target: 90,
+  },
+  // Ejercicio 4: Abducción de Cadera Sentado (ángulo cadera→rodilla vs vertical)
+  // Medición: ángulo del vector cadera→rodilla respecto a vertical.
+  // Posición descanso: rodillas juntas, ángulo ~0-5°.
+  // Objetivo: 30° = abducción funcional sentado.
+  //   AAOS normal: 40° abducción de cadera. 30° es objetivo conservador.
+  //   Fortalece gluteo medio, clave para estabilidad de marcha.
+  seatedHipAbduction: {
+    rest: 5,
+    target: 30,
+  },
+  // Ejercicio 5: Inclinación Lateral de Tronco (hombros vs caderas, respecto a vertical)
   // Medición: ángulo del vector cadera-centro → hombro-centro respecto a vertical.
   // Posición descanso: tronco erguido, ángulo ~0-3°. Umbral 5° da margen.
   // Objetivo: 12° = inclinación controlada funcional.
   //   Van Criekinge 2019 (meta-análisis 22 RCTs): trunk training SMD 1.08.
-  //   Karthikbabu 2011: inclinación lateral 8-15° es rango terapéutico post-AVC.
+  //   Karthikbabu 2011: inclinación lateral 8-15° es rango terapéutico.
   trunkLateralLean: {
     rest: 5,
     target: 12,
+  },
+  // Ejercicio 6: Flexión Lateral de Cuello (hombros vs nariz, respecto a vertical)
+  // Medición: ángulo del vector hombro-centro → nariz respecto a vertical.
+  // Posición descanso: cabeza erguida, ángulo ~0-3°. Umbral 5° da margen.
+  // Objetivo: 35° = flexión lateral funcional.
+  //   AAOS normal: 45° flexión lateral de cuello. 35° es objetivo conservador.
+  //   Relaja espasticidad cervical, mejora ROM cervical.
+  cervicalLateralFlexion: {
+    rest: 5,
+    target: 35,
   },
 } as const;
 

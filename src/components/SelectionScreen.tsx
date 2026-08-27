@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { EXERCISES } from '../data';
 import { ExerciseType, ExerciseCategory } from '../types';
-import { Settings, Shield, Dumbbell, Footprints, Brain, ChevronRight, Armchair, AlignCenter, Hand } from 'lucide-react';
+import { Settings, Shield, Dumbbell, Footprints, Brain, ChevronRight, AlignCenter, Activity } from 'lucide-react';
 
 interface SelectionScreenProps {
   onSelectExercise: (type: ExerciseType) => void;
@@ -12,27 +12,28 @@ interface SelectionScreenProps {
 }
 
 const EXERCISE_ICONS: Record<string, React.ReactNode> = {
-  stroke_unilateral_rehab: <Dumbbell size={22} />,
-  stroke_unilateral_leg_rehab: <Footprints size={22} />,
-  stroke_bilateral_symmetry: <Brain size={22} />,
-  stroke_elbow_flexion: <Hand size={22} />,
-  stroke_shoulder_abduction: <Dumbbell size={22} />,
-  stroke_trunk_lateral_lean: <AlignCenter size={22} />,
+  shoulder_abduction: <Dumbbell size={22} />,
+  assisted_shoulder_abduction: <Dumbbell size={22} />,
+  bilateral_arm_abduction: <Brain size={22} />,
+  seated_hip_abduction: <Footprints size={22} />,
+  trunk_lateral_lean: <AlignCenter size={22} />,
+  cervical_lateral_flexion: <Activity size={22} />,
 };
 
-const EXERCISE_COLORS: Record<string, { bg: string; border: string; accent: string }> = {
-  stroke_unilateral_rehab: { bg: 'bg-blue-600', border: 'hover:border-blue-500/80', accent: 'text-blue-400' },
-  stroke_unilateral_leg_rehab: { bg: 'bg-amber-600', border: 'hover:border-amber-500/80', accent: 'text-amber-400' },
-  stroke_bilateral_symmetry: { bg: 'bg-emerald-600', border: 'hover:border-emerald-500/80', accent: 'text-emerald-400' },
-  stroke_elbow_flexion: { bg: 'bg-purple-600', border: 'hover:border-purple-500/80', accent: 'text-purple-400' },
-  stroke_shoulder_abduction: { bg: 'bg-cyan-600', border: 'hover:border-cyan-500/80', accent: 'text-cyan-400' },
-  stroke_trunk_lateral_lean: { bg: 'bg-rose-600', border: 'hover:border-rose-500/80', accent: 'text-rose-400' },
+const EXERCISE_COLORS: Record<string, { bg: string; border: string }> = {
+  shoulder_abduction: { bg: 'bg-cyan-600', border: 'hover:border-cyan-500/80' },
+  assisted_shoulder_abduction: { bg: 'bg-blue-600', border: 'hover:border-blue-500/80' },
+  bilateral_arm_abduction: { bg: 'bg-emerald-600', border: 'hover:border-emerald-500/80' },
+  seated_hip_abduction: { bg: 'bg-amber-600', border: 'hover:border-amber-500/80' },
+  trunk_lateral_lean: { bg: 'bg-rose-600', border: 'hover:border-rose-500/80' },
+  cervical_lateral_flexion: { bg: 'bg-purple-600', border: 'hover:border-purple-500/80' },
 };
 
 const CATEGORY_LABELS: Record<ExerciseCategory, { label: string; icon: React.ReactNode }> = {
-  upper_limb: { label: 'Extremidad Superior', icon: <Armchair size={14} /> },
+  upper_limb: { label: 'Extremidad Superior', icon: <Dumbbell size={14} /> },
   lower_limb: { label: 'Extremidad Inferior', icon: <Footprints size={14} /> },
   trunk: { label: 'Control de Tronco', icon: <AlignCenter size={14} /> },
+  neck: { label: 'Cuello', icon: <Activity size={14} /> },
 };
 
 export const SelectionScreen: React.FC<SelectionScreenProps> = ({
@@ -41,14 +42,13 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
   contrastMode,
   isVoiceEnabled,
 }) => {
-  // Group exercises by category
   const categories = EXERCISES.reduce((acc, exe) => {
     if (!acc[exe.category]) acc[exe.category] = [];
     acc[exe.category].push(exe);
     return acc;
   }, {} as Record<ExerciseCategory, typeof EXERCISES>);
 
-  const categoryOrder: ExerciseCategory[] = ['upper_limb', 'lower_limb', 'trunk'];
+  const categoryOrder: ExerciseCategory[] = ['upper_limb', 'lower_limb', 'trunk', 'neck'];
   let globalIndex = 0;
 
   return (
@@ -57,7 +57,6 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
         contrastMode ? 'bg-black text-white' : 'medical-grid text-white'
       }`}
     >
-      {/* Compact header with safe-area */}
       <header className={`flex items-center justify-between px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 ${contrastMode ? 'border-b border-zinc-800' : ''}`}>
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0">
@@ -84,7 +83,6 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
         </button>
       </header>
 
-      {/* Brief welcome */}
       <div className="px-5 pt-2 pb-4">
         <h2 className="font-display font-black text-2xl leading-tight mb-1.5">
           Elija su ejercicio
@@ -94,7 +92,6 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
         </p>
       </div>
 
-      {/* Exercise cards grouped by category */}
       <div className="flex flex-col gap-4 px-5 flex-1 pb-4">
         {categoryOrder.map((cat) => {
           const exercises = categories[cat];
@@ -103,17 +100,15 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
 
           return (
             <div key={cat}>
-              {/* Category header */}
               <div className={`flex items-center gap-2 mb-2.5 px-1 ${contrastMode ? 'text-zinc-400' : 'text-slate-500'}`}>
                 {catLabel.icon}
                 <span className="text-[11px] font-bold uppercase tracking-widest">{catLabel.label}</span>
                 <div className={`flex-1 h-px ${contrastMode ? 'bg-zinc-800' : 'bg-slate-800'}`} />
               </div>
 
-              {/* Exercise cards in this category */}
               <div className="flex flex-col gap-2.5">
                 {exercises.map((exe) => {
-                  const colors = EXERCISE_COLORS[exe.id] || EXERCISE_COLORS.stroke_unilateral_rehab;
+                  const colors = EXERCISE_COLORS[exe.id] || EXERCISE_COLORS.shoulder_abduction;
                   const idx = globalIndex++;
                   return (
                     <motion.button
@@ -152,7 +147,6 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
         })}
       </div>
 
-      {/* Privacy + Safety footer with safe-area */}
       <div className="px-5 py-5 mt-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
         <div className={`flex items-center gap-2 mb-3 text-xs ${contrastMode ? 'text-zinc-400' : 'text-slate-500'}`}>
           <Shield size={14} className="shrink-0 text-emerald-500" />

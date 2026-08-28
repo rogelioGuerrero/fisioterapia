@@ -193,6 +193,221 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
     ctx.restore();
   };
 
+  // Draw a dashed target zone line showing where the patient should reach.
+  // For joint_angle: draws an arc + dashed line at the target angle from the shoulder.
+  // For lateral_lean: draws a dashed line at the target angle from vertical.
+  const drawTargetZone = (
+    ctx: CanvasRenderingContext2D,
+    exerciseId: string,
+    landmarks: Landmark[],
+    canvas: HTMLCanvasElement,
+    targetAngle: number
+  ) => {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)'; // Emerald green
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+
+    if (['shoulder_abduction', 'assisted_shoulder_abduction', 'bilateral_arm_abduction'].includes(exerciseId)) {
+      // Joint angle: hip→shoulder→elbow. Draw target position for the elbow(s).
+      const drawForSide = (hipLm: Landmark, shoulderLm: Landmark, elbowLm: Landmark) => {
+        if (!hipLm || !shoulderLm || !elbowLm) return;
+        const hipX = hipLm.x * canvas.width;
+        const hipY = hipLm.y * canvas.height;
+        const shX = shoulderLm.x * canvas.width;
+        const shY = shoulderLm.y * canvas.height;
+        const elX = elbowLm.x * canvas.width;
+        const elY = elbowLm.y * canvas.height;
+
+        // Vector from hip to shoulder (the reference limb segment)
+        const refDx = shX - hipX;
+        const refDy = shY - hipY;
+        const refLen = Math.sqrt(refDx * refDx + refDy * refDy);
+        if (refLen < 1) return;
+
+        // Vector from shoulder to current elbow (the moving segment)
+        const moveDx = elX - shX;
+        const moveDy = elY - shY;
+        const moveLen = Math.sqrt(moveDx * moveDx + moveDy * moveDy);
+        if (moveLen < 1) return;
+
+        // Reference angle (hip→shoulder direction)
+        const refAngle = Math.atan2(refDy, refDx);
+        // Current angle of the moving segment
+        const currentMoveAngle = Math.atan2(moveDy, moveDx);
+        // Current joint angle
+        let currentJointAngle = Math.abs(currentMoveAngle - refAngle) * 180 / Math.PI;
+        if (currentJointAngle > 180) currentJointAngle = 360 - currentJointAngle;
+
+        // Target position: rotate the moving segment to the target angle from the reference
+        // For abduction (high direction), the elbow moves away from the body (outward)
+        // Determine rotation direction based on which side we're drawing
+        const isLeftSide = hipLm.x < 0.5; // Left side of body (mirrored, so appears on right)
+        const rotDir = isLeftSide ? -1 : 1; // Left arm rotates counterclockwise, right clockwise
+        const targetMoveAngle = refAngle + rotDir * (targetAngle * Math.PI / 180);
+        const targetElX = shX + Math.cos(targetMoveAngle) * moveLen;
+        const targetElY = shY + Math.sin(targetMoveAngle) * moveLen;
+
+        // Draw arc from current elbow to target elbow position
+        ctx.beginPath();
+        ctx.arc(shX, shY, moveLen, currentMoveAngle, targetMoveAngle, rotDir < 0);
+        ctx.stroke();
+
+        // Draw dashed line from shoulder to target elbow position
+        ctx.beginPath();
+        ctx.moveTo(shX, shY);
+        ctx.lineTo(targetElX, targetElY);
+        ctx.stroke();
+
+        // Draw small target marker circle
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(targetElX, targetElY, 8, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+        ctx.fill();
+      };
+
+      if (exerciseId === 'bilateral_arm_abduction') {
+        drawForSide(landmarks[23], landmarks[11], landmarks[13]);
+        drawForSide(landmarks[24], landmarks[12], landmarks[14]);
+      } else {
+        // Unilateral — use whichever side is active
+        drawForSide(landmarks[23], landmarks[11], landmarks[13]);
+        drawForSide(landmarks[24], landmarks[12], landmarks[14]);
+      }
+    } else if (exerciseId === 'seated_hip_abduction') {
+      // Lateral angle: hip→knee relative to vertical. Draw target line from hip at target angle.
+      const drawForHip = (hipLm: Landmark, kneeLm: Landmark) => {
+        if (!hipLm || !kneeLm) return;
+        const hipX = hipLm.x * canvas.width;
+        const hipY = hipLm.y * canvas.height;
+        const kneeX = kneeLm.x * canvas.width;
+        const kneeY = kneeLm.y * canvas.height;
+        const legLen = Math.sqrt((kneeX - hipX) ** 2 + (kneeY - hipY) ** 2);
+        if (legLen < 1) return;
+
+        const isLeftSide = hipLm.x < 0.5;
+        const rotDir = isLeftSide ? -1 : 1;
+        // Target: rotate from vertical (downward) by targetAngle
+        const verticalAngle = Math.PI / 2; // pointing down
+        const targetAngleRad = verticalAngle + rotDir * (targetAngle * Math.PI / 180);
+        const targetKneeX = hipX + Math.cos(targetAngleRad) * legLen;
+        const targetKneeY = hipY + Math.sin(targetAngleRad) * legLen;
+
+        // Draw dashed vertical reference
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(hipX, hipY);
+        ctx.lineTo(hipX, hipY + legLen);
+        ctx.stroke();
+
+        // Draw dashed target line
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(hipX, hipY);
+        ctx.lineTo(targetKneeX, targetKneeY);
+        ctx.stroke();
+
+        // Target marker
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(targetKneeX, targetKneeY, 8, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+        ctx.fill();
+      };
+
+      drawForHip(landmarks[23], landmarks[25]);
+      drawForHip(landmarks[24], landmarks[26]);
+    } else if (exerciseId === 'trunk_lateral_lean') {
+      // Trunk: shoulder center → lean direction. Draw target lean line.
+      if (!landmarks[11] || !landmarks[12] || !landmarks[23] || !landmarks[24]) return;
+      const shoulderMidX = ((landmarks[11].x + landmarks[12].x) / 2) * canvas.width;
+      const shoulderMidY = ((landmarks[11].y + landmarks[12].y) / 2) * canvas.height;
+      const hipMidX = ((landmarks[23].x + landmarks[24].x) / 2) * canvas.width;
+      const hipMidY = ((landmarks[23].y + landmarks[24].y) / 2) * canvas.height;
+      const trunkLen = Math.sqrt((shoulderMidX - hipMidX) ** 2 + (shoulderMidY - hipMidY) ** 2);
+      if (trunkLen < 1) return;
+
+      // Draw target lines for both directions
+      const verticalAngle = -Math.PI / 2; // pointing up
+      for (const rotDir of [-1, 1]) {
+        const targetAngleRad = verticalAngle + rotDir * (targetAngle * Math.PI / 180);
+        const targetShX = hipMidX + Math.cos(targetAngleRad) * trunkLen;
+        const targetShY = hipMidY + Math.sin(targetAngleRad) * trunkLen;
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(hipMidX, hipMidY);
+        ctx.lineTo(targetShX, targetShY);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(targetShX, targetShY, 8, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.fill();
+        ctx.setLineDash([8, 6]);
+      }
+
+      // Draw vertical reference
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+      ctx.beginPath();
+      ctx.moveTo(hipMidX, hipMidY);
+      ctx.lineTo(hipMidX, hipMidY - trunkLen);
+      ctx.stroke();
+    } else if (exerciseId === 'cervical_lateral_flexion') {
+      // Cervical: shoulder center → nose. Draw target lean line for both directions.
+      if (!landmarks[11] || !landmarks[12] || !landmarks[0]) return;
+      const shoulderMidX = ((landmarks[11].x + landmarks[12].x) / 2) * canvas.width;
+      const shoulderMidY = ((landmarks[11].y + landmarks[12].y) / 2) * canvas.height;
+      const noseX = landmarks[0].x * canvas.width;
+      const noseY = landmarks[0].y * canvas.height;
+      const neckLen = Math.sqrt((noseX - shoulderMidX) ** 2 + (noseY - shoulderMidY) ** 2);
+      if (neckLen < 1) return;
+
+      const verticalAngle = -Math.PI / 2; // pointing up
+      for (const rotDir of [-1, 1]) {
+        const targetAngleRad = verticalAngle + rotDir * (targetAngle * Math.PI / 180);
+        const targetNoseX = shoulderMidX + Math.cos(targetAngleRad) * neckLen;
+        const targetNoseY = shoulderMidY + Math.sin(targetAngleRad) * neckLen;
+
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(shoulderMidX, shoulderMidY);
+        ctx.lineTo(targetNoseX, targetNoseY);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(targetNoseX, targetNoseY, 8, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.fill();
+        ctx.setLineDash([8, 6]);
+      }
+
+      // Draw vertical reference
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+      ctx.beginPath();
+      ctx.moveTo(shoulderMidX, shoulderMidY);
+      ctx.lineTo(shoulderMidX, shoulderMidY - neckLen);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -929,6 +1144,9 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               const jointsToDraw = [landmarks[23], landmarks[11], landmarks[13], landmarks[24], landmarks[12], landmarks[14]].filter(Boolean);
               jointsToDraw.forEach(drawJointSpheres);
 
+              // Draw target zone (dashed green line showing where to reach)
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+
               // Draw angle overlay bubbles over both shoulders (11 and 12)
               const drawAngleBubble = (lm: Landmark, prAngle: number) => {
                 if (!lm) return;
@@ -1000,7 +1218,10 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 landmarks[24], landmarks[26], landmarks[28]
               ].filter(Boolean);
               jointsToDraw.forEach(drawJointSpheres);
- 
+
+              // Draw target zone (dashed green line showing where to reach)
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+
               // Draw angle text bubbles over both knees (25 and 26)
               const drawAngleBubble = (lm: Landmark, kneeAngle: number) => {
                 if (!lm) return;
@@ -1089,6 +1310,9 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.stroke();
               });
 
+              // Draw target zone (dashed green lines showing target lean)
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+
               // Draw angle bubble at shoulder center
               if (landmarks[11] && landmarks[12]) {
                 const shoulderMidX = ((landmarks[11].x + landmarks[12].x) / 2) * canvas.width;
@@ -1164,6 +1388,9 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.stroke();
               });
 
+              // Draw target zone (dashed green lines showing target neck lean)
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+
               // Draw angle bubble at nose
               if (landmarks[0]) {
                 const noseX = landmarks[0].x * canvas.width;
@@ -1222,6 +1449,9 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
               });
+
+              // Draw target zone (dashed green line showing where to reach)
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
 
               // Draw active vertex angle visual dial marker on HTML Canvas
               const vertexNode = landmarksOfInterest[1] || landmarksOfInterest[0];

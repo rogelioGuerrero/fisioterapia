@@ -72,6 +72,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
   const [isLimbDetected, setIsLimbDetected] = useState<boolean>(false);
   const [sessionCompleted, setSessionCompleted] = useState<boolean>(false);
   const [showDemoVideo, setShowDemoVideo] = useState<boolean>(false);
+  const hasSpokenReadyRef = useRef<boolean>(false);
   const isCompletedRef = useRef<boolean>(false);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
   const wakeLockRef = useRef<any>(null);
@@ -248,7 +249,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
         }
 
         setIsLoading(false);
-        triggerVoice("Cámara lista. Coloque el teléfono y sitúe al paciente. Cuando esté listo, diga Inicio o presione el botón para comenzar.", true);
+        // No voice here — wait until patient is detected before speaking
 
       } catch (err: any) {
         console.error('Error initializing physiotherapy core API:', err);
@@ -725,6 +726,12 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
 
           setActiveSide(sideSelected);
           setIsLimbDetected(detected);
+
+          // Speak "ready" prompt only once when patient is first detected
+          if (detected && !hasSpokenReadyRef.current && practiceStateRef.current === 'not_started') {
+            hasSpokenReadyRef.current = true;
+            triggerVoice("Cámara lista. Diga Inicio o presione el botón para comenzar.", true);
+          }
 
           if (detected) {
             // Calculate joint angles in real time

@@ -148,7 +148,7 @@ export const EXERCISES: ExerciseDefinition[] = [
 ];
 
 export const AUDIO_PHRASES = {
-  welcome: (title: string) => `Terapia de ${title}. Mire el video y comience cuando esté listo.`,
+  welcome: (title: string) => `Terapia de ${title}. Comience cuando esté listo.`,
   calibration_help: 'Ponga el teléfono frente a usted, a un metro de distancia, hasta que se detecte su cuerpo.',
   calibrated: '¡Excelente! Empecemos con calma.',
   relaxed_prompt: 'Vuelva a la posición de descanso.',

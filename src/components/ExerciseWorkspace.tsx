@@ -201,7 +201,8 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
     exerciseId: string,
     landmarks: Landmark[],
     canvas: HTMLCanvasElement,
-    targetAngle: number
+    targetAngle: number,
+    activeSide: 'izquierda' | 'derecha' | 'ambos'
   ) => {
     ctx.save();
     ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)'; // Emerald green
@@ -274,9 +275,12 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
         drawForSide(landmarks[23], landmarks[11], landmarks[13]);
         drawForSide(landmarks[24], landmarks[12], landmarks[14]);
       } else {
-        // Unilateral — use whichever side is active
-        drawForSide(landmarks[23], landmarks[11], landmarks[13]);
-        drawForSide(landmarks[24], landmarks[12], landmarks[14]);
+        // Unilateral — only draw for the active side
+        if (activeSide === 'izquierda') {
+          drawForSide(landmarks[23], landmarks[11], landmarks[13]);
+        } else {
+          drawForSide(landmarks[24], landmarks[12], landmarks[14]);
+        }
       }
     } else if (exerciseId === 'seated_hip_abduction') {
       // Lateral angle: hip→knee relative to vertical. Draw target line from hip at target angle.
@@ -322,8 +326,14 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
         ctx.fill();
       };
 
-      drawForHip(landmarks[23], landmarks[25]);
-      drawForHip(landmarks[24], landmarks[26]);
+      if (activeSide === 'ambos') {
+        drawForHip(landmarks[23], landmarks[25]);
+        drawForHip(landmarks[24], landmarks[26]);
+      } else if (activeSide === 'izquierda') {
+        drawForHip(landmarks[23], landmarks[25]);
+      } else {
+        drawForHip(landmarks[24], landmarks[26]);
+      }
     } else if (exerciseId === 'trunk_lateral_lean') {
       // Trunk: shoulder center → lean direction. Draw target lean line.
       if (!landmarks[11] || !landmarks[12] || !landmarks[23] || !landmarks[24]) return;
@@ -1145,7 +1155,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               jointsToDraw.forEach(drawJointSpheres);
 
               // Draw target zone (dashed green line showing where to reach)
-              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle, activeSide);
 
               // Draw angle overlay bubbles over both shoulders (11 and 12)
               const drawAngleBubble = (lm: Landmark, prAngle: number) => {
@@ -1220,7 +1230,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               jointsToDraw.forEach(drawJointSpheres);
 
               // Draw target zone (dashed green line showing where to reach)
-              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle, activeSide);
 
               // Draw angle text bubbles over both knees (25 and 26)
               const drawAngleBubble = (lm: Landmark, kneeAngle: number) => {
@@ -1311,7 +1321,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               });
 
               // Draw target zone (dashed green lines showing target lean)
-              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle, activeSide);
 
               // Draw angle bubble at shoulder center
               if (landmarks[11] && landmarks[12]) {
@@ -1389,7 +1399,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               });
 
               // Draw target zone (dashed green lines showing target neck lean)
-              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle, activeSide);
 
               // Draw angle bubble at nose
               if (landmarks[0]) {
@@ -1451,7 +1461,7 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
               });
 
               // Draw target zone (dashed green line showing where to reach)
-              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle);
+              drawTargetZone(ctx, exerciseId, landmarks, canvas, currentEx.maxAngle, activeSide);
 
               // Draw active vertex angle visual dial marker on HTML Canvas
               const vertexNode = landmarksOfInterest[1] || landmarksOfInterest[0];

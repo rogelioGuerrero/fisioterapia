@@ -18,7 +18,7 @@ import {
   HAPTIC_PATTERNS,
   CAMERA_CONFIG,
 } from '../clinicalConstants';
-import { ArrowLeft, Camera, RefreshCw, Volume2, Activity, Brain, AlertCircle, Award, PlayCircle } from 'lucide-react';
+import { ArrowLeft, Camera, RefreshCw, Volume2, Activity, Brain, AlertCircle, Award, PlayCircle, Pause, Play } from 'lucide-react';
 
 interface ExerciseWorkspaceProps {
   exerciseId: ExerciseType;
@@ -73,14 +73,16 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
   const [sessionCompleted, setSessionCompleted] = useState<boolean>(false);
   const [showDemoVideo, setShowDemoVideo] = useState<boolean>(false);
   const hasSpokenReadyRef = useRef<boolean>(false);
+  const lostDetectionAtRef = useRef<number | null>(null);
+  const hasSpokenLostDetectionRef = useRef<boolean>(false);
   const isCompletedRef = useRef<boolean>(false);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
   const wakeLockRef = useRef<any>(null);
   
   // Practice state controls
-  const [practiceState, _setPracticeState] = useState<'not_started' | 'countdown' | 'active'>('not_started');
-  const practiceStateRef = useRef<'not_started' | 'countdown' | 'active'>('not_started');
-  const setPracticeState = (state: 'not_started' | 'countdown' | 'active') => {
+  const [practiceState, _setPracticeState] = useState<'not_started' | 'countdown' | 'active' | 'paused'>('not_started');
+  const practiceStateRef = useRef<'not_started' | 'countdown' | 'active' | 'paused'>('not_started');
+  const setPracticeState = (state: 'not_started' | 'countdown' | 'active' | 'paused') => {
     practiceStateRef.current = state;
     _setPracticeState(state);
   };
@@ -316,9 +318,21 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
     if (practiceStateRef.current !== 'not_started') return;
     setPracticeState('countdown');
     setCountdownSeconds(SESSION_PARAMS.countdownSeconds);
-    
+
     // Play warm countdown speech: "Preparados en 3, 2, 1, ¡comenzamos!"
     triggerVoice("Preparados para comenzar en... tres... dos... uno... ¡comenzamos!", true);
+  };
+
+  const handleTogglePause = () => {
+    if (practiceStateRef.current === 'active') {
+      setPracticeState('paused');
+      triggerVoice("Pausa. Presione continuar cuando esté listo.", true);
+    } else if (practiceStateRef.current === 'paused') {
+      setPracticeState('active');
+      lostDetectionAtRef.current = null;
+      hasSpokenLostDetectionRef.current = false;
+      triggerVoice("¡Continuemos!", true);
+    }
   };
 
   // Continuous speech recognition for starting ("inicio", "empezar", "comenzar", etc.)
@@ -726,6 +740,31 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
 
           setActiveSide(sideSelected);
           setIsLimbDetected(detected);
+
+          // Auto-pause: if we lose detection during active practice for >5s, pause and tell patient
+          if (practiceStateRef.current === 'active') {
+            if (!detected) {
+              if (lostDetectionAtRef.current === null) {
+                lostDetectionAtRef.current = Date.now();
+              } else if (Date.now() - lostDetectionAtRef.current > 5000 && !hasSpokenLostDetectionRef.current) {
+                setPracticeState('paused');
+                hasSpokenLostDetectionRef.current = true;
+                triggerVoice("Acomódese para continuar. Le espero cuando esté listo.", true);
+              }
+            } else {
+              // Detection restored
+              lostDetectionAtRef.current = null;
+              hasSpokenLostDetectionRef.current = false;
+            }
+          }
+
+          // Auto-resume from paused when detection returns
+          if (practiceStateRef.current === 'paused' && detected) {
+            setPracticeState('active');
+            lostDetectionAtRef.current = null;
+            hasSpokenLostDetectionRef.current = false;
+            triggerVoice("¡Gracias! Continuemos.", true);
+          }
 
           // Speak "ready" prompt only once when patient is first detected
           if (detected && !hasSpokenReadyRef.current && practiceStateRef.current === 'not_started') {
@@ -1313,11 +1352,32 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
           <span>Volver</span>
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Reps</span>
-          <span className="text-2xl font-black font-mono leading-none">
-            <span className={reps > 0 ? 'text-emerald-400' : 'text-white'}>0{reps}</span>
-            <span className="text-sm text-slate-500">/05</span>
-          </span>
+          {(practiceState === 'active' || practiceState === 'paused') && (
+            <button
+              onClick={handleTogglePause}
+              className={`flex items-center justify-center rounded-xl px-2.5 py-2.5 cursor-pointer transition-all active:scale-95 ${
+                contrastMode
+                  ? 'text-yellow-400 border border-yellow-400/40'
+                  : 'text-blue-400 border border-blue-400/40 hover:bg-slate-800'
+              }`}
+              style={{ minHeight: '44px', minWidth: '44px' }}
+              aria-label={practiceState === 'paused' ? 'Continuar' : 'Pausar'}
+            >
+              {practiceState === 'paused' ? <Play size={18} /> : <Pause size={18} />}
+            </button>
+          )}
+          <div className="flex items-center gap-1.5">
+          {Array.from({ length: SESSION_PARAMS.targetRepetitions }).map((_, i) => (
+            <div
+              key={i}
+              className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                i < reps
+                  ? 'bg-emerald-400 scale-110 shadow-[0_0_8px_rgba(52,211,153,0.6)]'
+                  : 'bg-slate-700'
+              }`}
+            />
+          ))}
+          </div>
         </div>
       </header>
 
@@ -1522,6 +1582,35 @@ export const ExerciseWorkspace: React.FC<ExerciseWorkspaceProps> = ({
                     <span className="text-xs font-black font-display text-white tracking-widest uppercase mt-3 animate-pulse">
                       Preparese!
                     </span>
+                  </motion.div>
+                </div>
+              )}
+
+              {practiceState === 'paused' && (
+                <div className="absolute inset-0 bg-amber-950/80 z-30 flex flex-col justify-center items-center p-6 text-center backdrop-blur-md">
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center gap-4"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center">
+                      <Pause size={28} className="text-amber-400" />
+                    </div>
+                    <p className="text-xl font-bold text-amber-300 font-display">
+                      Pausa
+                    </p>
+                    <p className="text-sm text-amber-200/80 max-w-[260px]">
+                      Acomódese para continuar. Se reanudará automáticamente al detectarle.
+                    </p>
+                    <button
+                      onClick={handleTogglePause}
+                      className="mt-2 flex items-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-400 active:scale-95 rounded-xl font-bold text-sm text-slate-900 cursor-pointer transition-all"
+                      style={{ minHeight: '48px' }}
+                    >
+                      <Play size={18} />
+                      <span>Continuar</span>
+                    </button>
                   </motion.div>
                 </div>
               )}

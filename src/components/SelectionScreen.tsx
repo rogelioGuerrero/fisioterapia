@@ -148,6 +148,18 @@ export const SelectionScreen: React.FC<SelectionScreenProps> = ({
       </div>
 
       <div className="px-5 py-5 mt-auto pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        {/* QR para compartir — escanear para abrir esta app en otro dispositivo */}
+        <div className={`flex flex-col items-center gap-2 mb-4 p-3 rounded-xl border ${contrastMode ? 'bg-zinc-950 border-zinc-800' : 'bg-slate-900/60 border-slate-800'}`}>
+          <img
+            src="/qr-mini.png"
+            alt="Escanea para abrir FisioAsistente AI"
+            className="w-32 h-32 rounded-lg"
+          />
+          <p className={`text-[10px] text-center font-bold ${contrastMode ? 'text-zinc-400' : 'text-slate-400'}`}>
+            Escanea para abrir en tu celular
+          </p>
+        </div>
+
         <div className={`flex items-center gap-2 mb-3 text-xs ${contrastMode ? 'text-zinc-400' : 'text-slate-500'}`}>
           <Shield size={14} className="shrink-0 text-emerald-500" />
           <span>Su video nunca sale de su dispositivo.</span>
